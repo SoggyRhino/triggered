@@ -30,6 +30,7 @@ public class Module {
     public Module(Manifest manifest) {
         this.manifest = manifest;
         Context.Builder builder = Context.newBuilder("js")
+                .engine(ModuleManager.instance.getEngine())
                 .allowHostAccess(JSHostAccessManager.getHostAccess())
                 .allowAllAccess(false)
                 .allowCreateThread(true)

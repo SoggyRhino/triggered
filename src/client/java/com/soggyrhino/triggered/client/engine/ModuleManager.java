@@ -2,6 +2,7 @@ package com.soggyrhino.triggered.client.engine;
 
 import com.soggyrhino.triggered.client.api.JSBindingManager;
 import com.soggyrhino.triggered.client.api.JSHostAccessManager;
+import org.graalvm.polyglot.Engine;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -14,6 +15,7 @@ import static com.soggyrhino.triggered.client.TriggeredClient.LOGGER;
 public class ModuleManager {
     private volatile List<Module> modules;
     private final ExecutorService executorService;
+    private static Engine polyglotEngine;
 
     public static ModuleManager instance;
 
@@ -27,11 +29,16 @@ public class ModuleManager {
         instance = new ModuleManager();
         JSHostAccessManager.init();
         JSBindingManager.init();
+        polyglotEngine = Engine.newBuilder()
+                .build();
     }
 
+    //intetinally no visibility modifier, we want the package private
+    Engine getEngine(){
+        return polyglotEngine;
+    }
     //todo throws exception
     public void reload() {
-
         executorService.submit(() -> {
             LOGGER.info("Starting module reload...");
 
