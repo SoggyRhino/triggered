@@ -7,7 +7,6 @@ import net.minecraft.entity.player.PlayerEntity;
 @Library
 public class Player {
 
-
     public void getPositon(){
         PlayerEntity player = MinecraftClient.getInstance().player;
 

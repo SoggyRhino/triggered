@@ -33,7 +33,6 @@ public class ModuleManager {
                 .build();
     }
 
-    //intetinally no visibility modifier, we want the package private
     Engine getEngine(){
         return polyglotEngine;
     }
