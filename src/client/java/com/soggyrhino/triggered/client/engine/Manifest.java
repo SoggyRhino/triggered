@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.soggyrhino.triggered.client.TriggeredClient.MODULES_DIR;
@@ -45,7 +46,7 @@ public class Manifest {
                     .map(folder -> folder.resolve("manifest.json"))
                     .filter(path -> path.toFile().exists())
                     .map(Manifest::loadManifest)
-                    .toList();
+                    .collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException("Unable to load manifests", e);
         }

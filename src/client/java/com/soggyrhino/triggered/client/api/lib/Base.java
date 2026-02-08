@@ -35,6 +35,7 @@ public class Base {
 
     @HostAccess.Export
     public void chat(String content) {
+        //todo fix
         MinecraftClient.getInstance().player.sendMessage(Text.of(content), false);
     }
 

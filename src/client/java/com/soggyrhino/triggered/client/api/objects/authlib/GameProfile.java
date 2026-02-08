@@ -1,22 +1,23 @@
 package com.soggyrhino.triggered.client.api.objects.authlib;
 
-import com.mojang.authlib.properties.PropertyMap;
 import com.soggyrhino.triggered.client.api.annotations.MCObject;
+import org.graalvm.polyglot.HostAccess;
 
-import java.util.UUID;
+import java.util.*;
 
 @MCObject
 public class GameProfile {
     public final com.mojang.authlib.GameProfile mcObject;
 
-    public GameProfile(com.mojang.authlib.GameProfile mcProfile) {
-        if (mcProfile == null) {
+    public GameProfile(com.mojang.authlib.GameProfile mcObject) {
+        if (mcObject == null) {
             throw new IllegalArgumentException("GameProfile cannot be null");
         }
 
-        this.mcObject = mcProfile;
+        this.mcObject = mcObject;
     }
 
+    @HostAccess.Export
     public UUID getId() {
         return mcObject.getId();
     }
@@ -27,6 +28,7 @@ public class GameProfile {
      *
      * @return Name of the profile
      */
+    @HostAccess.Export
     public String getName() {
         return mcObject.getName();
     }
@@ -36,7 +38,13 @@ public class GameProfile {
      *
      * @return Modifiable map of profile properties.
      */
-    public PropertyMap getProperties() {
-        return mcObject.getProperties();
+    @HostAccess.Export
+    public Map<String, List<Property>> getProperties() {
+        HashMap<String, List<Property>> map = new HashMap<>();
+        for (Map.Entry<String, com.mojang.authlib.properties.Property> entry : mcObject.getProperties().entries()) {
+            map.computeIfAbsent(entry.getKey(), k -> new ArrayList<>())
+                    .add(Property.fromMc(entry.getValue()));
+        }
+        return map;
     }
 }

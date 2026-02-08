@@ -1,10 +1,10 @@
 package com.soggyrhino.triggered.client.api.objects.entity;
 
 import com.soggyrhino.triggered.client.api.annotations.MCObject;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.piston.PistonBehavior;
-import net.minecraft.component.ComponentType;
+import com.soggyrhino.triggered.client.api.objects.block.BlockState;
+import com.soggyrhino.triggered.client.api.objects.block.piston.PistonBehavior;
+import com.soggyrhino.triggered.client.api.objects.util.math.BlockPos;
+import com.soggyrhino.triggered.client.api.objects.util.math.Direction;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.control.FlightMoveControl;
 import net.minecraft.entity.boss.WitherEntity;
@@ -48,7 +48,10 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.*;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.Vec2f;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.BlockLocating;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.GameRules;
@@ -64,6 +67,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @MCObject
@@ -80,7 +84,7 @@ public class Entity {
      */
     @HostAccess.Export
     public boolean collidesWithStateAtPos(BlockPos pos, BlockState state) {
-        return mcEntity.collidesWithStateAtPos(pos, state);
+        return mcEntity.collidesWithStateAtPos(pos.mcObject, state.mcObject);
     }
 
     /**
@@ -190,7 +194,7 @@ public class Entity {
 
     @HostAccess.Export
     public boolean isSupportedBy(BlockPos pos) {
-        return mcEntity.isSupportedBy(pos);
+        return mcEntity.isSupportedBy(pos.mcObject);
     }
 
     /**
@@ -212,7 +216,7 @@ public class Entity {
     @Deprecated
     @HostAccess.Export
     public BlockPos getLandingPos() {
-        return mcEntity.getLandingPos();
+        return new BlockPos(mcEntity.getLandingPos());
     }
 
     /**
@@ -225,7 +229,7 @@ public class Entity {
      */
     @HostAccess.Export
     public BlockPos getVelocityAffectingPos() {
-        return mcEntity.getVelocityAffectingPos();
+        return new BlockPos(mcEntity.getVelocityAffectingPos());
     }
 
     /**
@@ -239,14 +243,14 @@ public class Entity {
      */
     @HostAccess.Export
     public BlockPos getSteppingPos() {
-        return mcEntity.getSteppingPos();
+        return new BlockPos(mcEntity.getSteppingPos());
     }
 
     //todo missing static methods
 
     @HostAccess.Export
     public boolean collidesWithFluid(FluidState state, BlockPos fluidPos, Vec3d oldPos, Vec3d newPos) {
-        return mcEntity.collidesWithFluid(state, fluidPos, oldPos, newPos);
+        return mcEntity.collidesWithFluid(state, fluidPos.mcObject, oldPos, newPos);
     }
 
     @HostAccess.Export
@@ -256,7 +260,7 @@ public class Entity {
 
     @HostAccess.Export
     public BlockPos getWorldSpawnPos(ServerWorld world, BlockPos basePos) {
-        return mcEntity.getWorldSpawnPos(world, basePos);
+        return new BlockPos(mcEntity.getWorldSpawnPos(world, basePos.mcObject));
     }
 
     /**
@@ -347,7 +351,7 @@ public class Entity {
      */
     @HostAccess.Export
     public BlockState getSteppingBlockState() {
-        return mcEntity.getSteppingBlockState();
+        return new BlockState(mcEntity.getSteppingBlockState());
     }
 
     @HostAccess.Export
@@ -413,8 +417,8 @@ public class Entity {
     }
 
     @HostAccess.Export
-    public Direction getFacing() {
-        return mcEntity.getFacing();
+    public String getFacingDirection() {
+        return Direction.toString(mcEntity.getFacing());
     }
 
     @HostAccess.Export
@@ -527,8 +531,8 @@ public class Entity {
      * {@return whether the entity is in a wall and should suffocate}
      *
      * <p>This returns {@code false} if noClip is {@code true}; otherwise,
-     * this returns {@code true} if the eye position is occupied by a {@linkplain
-     * AbstractBlock.Settings#suffocates block that can suffocate}.
+     * this returns {@code true} if the eye position is occupied by a
+     * AbstractBlock.Settings#suffocates block that can suffocate.
      */
     @HostAccess.Export
     public boolean isInsideWall() {
@@ -1067,8 +1071,8 @@ public class Entity {
      * @see NetherPortal#entityPosInPortal
      */
     @HostAccess.Export
-    public Vec3d positionInPortal(Direction.Axis portalAxis, BlockLocating.Rectangle portalRect) {
-        return mcEntity.positionInPortal(portalAxis, portalRect);
+    public Vec3d positionInPortal(String portalAxis, BlockLocating.Rectangle portalRect) {
+        return mcEntity.positionInPortal(Direction.Axis.fromString(portalAxis), portalRect);
     }
 
     /**
@@ -1098,7 +1102,7 @@ public class Entity {
      */
     @HostAccess.Export
     public float getEffectiveExplosionResistance(Explosion explosion, BlockView world, BlockPos pos, BlockState blockState, FluidState fluidState, float max) {
-        return mcEntity.getEffectiveExplosionResistance(explosion, world, pos, blockState, fluidState, max);
+        return mcEntity.getEffectiveExplosionResistance(explosion, world, pos.mcObject, blockState.mcObject, fluidState, max);
     }
 
     /**
@@ -1111,7 +1115,7 @@ public class Entity {
      */
     @HostAccess.Export
     public boolean canExplosionDestroyBlock(Explosion explosion, BlockView world, BlockPos pos, BlockState state, float explosionPower) {
-        return mcEntity.canExplosionDestroyBlock(explosion, world, pos, state, explosionPower);
+        return mcEntity.canExplosionDestroyBlock(explosion, world, pos.mcObject, state.mcObject, explosionPower);
     }
 
     /**
@@ -1240,15 +1244,14 @@ public class Entity {
     }
 
     @HostAccess.Export
-    public Direction getHorizontalFacing() {
+    public String getHorizontalFacing() {
         return Direction.fromHorizontalDegrees(this.getYaw());
     }
 
     @HostAccess.Export
-    public Direction getMovementDirection() {
+    public String getMovementDirection() {
         return this.getHorizontalFacing();
     }
-
 
     /**
      * {@return whether {@code spectator} can spectate this entity}
@@ -1352,7 +1355,7 @@ public class Entity {
      */
     @HostAccess.Export
     public final List<Entity> getPassengerList() {
-        return mcEntity.getPassengerList().stream().map(Entity::new).toList();
+        return mcEntity.getPassengerList().stream().map(Entity::new).collect(Collectors.toList());
     }
 
     /**
@@ -1544,18 +1547,9 @@ public class Entity {
         return controllingVehicle == null ? null : new Entity(controllingVehicle);
     }
 
-    /**
-     * {@return the behavior of the piston for this entity}
-     *
-     * <p>This is {@link PistonBehavior#NORMAL} by default. {@link AreaEffectCloudEntity},
-     * {@link MarkerEntity}, and marker {@link ArmorStandEntity}
-     * return {@link PistonBehavior#IGNORE}, causing the piston to not affect the entity's
-     * position. Other piston behaviors are inapplicable to entities, and treated like
-     * {@link PistonBehavior#NORMAL}.
-     */
     @HostAccess.Export
-    public PistonBehavior getPistonBehavior() {
-        return mcEntity.getPistonBehavior();
+    public String getPistonBehavior() {
+        return PistonBehavior.toString(mcEntity.getPistonBehavior());
     }
 
     /**
@@ -1676,7 +1670,7 @@ public class Entity {
 
     @HostAccess.Export
     public BlockPos getBlockPos() {
-        return mcEntity.getBlockPos();
+        return new BlockPos(mcEntity.getBlockPos());
     }
 
     /**
@@ -1689,7 +1683,7 @@ public class Entity {
      */
     @HostAccess.Export
     public BlockState getBlockStateAtPos() {
-        return mcEntity.getBlockStateAtPos();
+        return new BlockState(mcEntity.getBlockStateAtPos());
     }
 
     /**
@@ -1910,7 +1904,7 @@ public class Entity {
      */
     @HostAccess.Export
     public boolean canModifyAt(ServerWorld world, BlockPos pos) {
-        return mcEntity.canModifyAt(world, pos);
+        return mcEntity.canModifyAt(world, pos.mcObject);
     }
 
     @HostAccess.Export
@@ -1950,9 +1944,4 @@ public class Entity {
         return mcEntity.getLootTableKey();
     }
 
-    @Nullable
-    @HostAccess.Export
-    public <T> T get(ComponentType<? extends T> type) {
-        return mcEntity.get(type);
-    }
 }

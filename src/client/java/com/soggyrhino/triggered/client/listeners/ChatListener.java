@@ -6,7 +6,7 @@ import com.soggyrhino.triggered.client.engine.ModuleManager;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 
 public class ChatListener {
-
+    //todo fix timestamp
     @Listener
     public static void registerListener() {
         ClientReceiveMessageEvents.CHAT.register((message, signed_message, sender, params, timestamp) -> {

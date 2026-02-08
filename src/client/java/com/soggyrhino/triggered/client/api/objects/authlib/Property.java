@@ -1,4 +1,4 @@
-package com.soggyrhino.triggered.client.api.objects;
+package com.soggyrhino.triggered.client.api.objects.authlib;
 
 import com.soggyrhino.triggered.client.api.annotations.MCObject;
 import org.graalvm.polyglot.HostAccess;
